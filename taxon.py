@@ -1,13 +1,11 @@
 import sqlite3
 
 class Taxon:
-    __con = None
-    __cur = None
-    __table = "Taxonomy"
+    _table = "Taxonomy"
 
     def __init__(self, name='', rank='', description=''):
         self.name, self.rank, self.description = name, rank, description
-        self.__parentId = -1
+        self._parentId = -1
         self.__id = -1
         self.__changed = False
         self.__saved = False
@@ -45,41 +43,45 @@ class Taxon:
 
     @property
     def hasParent(self):
-        return self.__parentId > -1
+        return self._parentId > -1
 
     @classmethod
-    def bindDb(cls, con: sqlite3.Connection):
-        cls.__db = con
-        cls.__cur = con.cursor()
-
-    @classmethod
-    def getById(cls, id: int):
-        txn = cls.__cur.execute(f'select tax_name, rank, description, parent_id from {cls.__table} where id = ?;', (id, ))
+    def getById(cls, _db: sqlite3.Connection, id: int):
+        _cur = _db.cursor()
+        txn = _cur.execute(f'select tax_name, rank, description, parent_id from {cls._table} where id = ?;', (id, ))
         txnTuple = txn.fetchone()
         t = cls(*txnTuple[0:3])
         t.__id = id
-        t.__parentId = txnTuple[3]
+        t._parentId = txnTuple[3]
         t.__saved = True
         return t
 
-    def getParent(self):
+    def getParent(self, db):
         if self.hasParent:
-            return type(self).getById(self.__parentId)
+            return type(self).getById(db, self._parentId)
         else:
             return None
 
-    def save(self):
+    def save(self, _db):
         if self.__saved and not self.__changed:
             return
+        _cur = _db.cursor()
         if not self.__saved:
-            type(self).__cur.execute(f'insert into {type(self).__table}(tax_name, rank, description, parent_id) values (?, ?, ?, ?);',
-                                     (self.name, self.rank, self.description, self.__parentId))
+            _cur.execute(f'insert into {type(self)._table}(tax_name, rank, description, parent_id) values (?, ?, ?, ?);',
+                                    (self.name, self.rank, self.description, self._parentId))
         else:
-            type(self).__cur.execute(f'update {type(self).__table} set tax_name = ?, rank = ?, description = ?, parent_id = ? where id = ?;',
-                                     (self.name, self.rank, self.description, self.__parentId, self.__id))
-        type(self).__con.commit()
+            _cur.execute(f'update {type(self)._table} set tax_name = ?, rank = ?, description = ?, parent_id = ? where id = ?;',
+                                    (self.name, self.rank, self.description, self._parentId, self.__id))
+        _db.commit()
         self.__saved = True
         self.__changed = False
+
+    @classmethod
+    def getListByRank(cls, _db, rank):
+        cur = _db.cursor()
+        txn = cur.execute(f'select id from {cls._table} where rank = ?;', (rank,))
+        ts = txn.fetchall()
+        return [cls.getById(_db, id[0]) for id in ts]
 
     def __str__(self):
         return f"{self.rank} {self.name}"
