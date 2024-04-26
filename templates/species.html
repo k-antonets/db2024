@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %} {{ species.fullName }} {% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<table>
+    <tr><td>Genus name</td><td>{{species.genusName}}</td></tr>
+    <tr><td>Species name</td><td>{{ species.name }}</td></tr>
+    <tr><td>Description</td><td>{{species.description}}</td></tr>
+</table>
+<p><a href="{{url_for('update_species', id=species.id)}}">Update</a></p>
+{% endblock %}

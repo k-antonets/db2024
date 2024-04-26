@@ -67,8 +67,10 @@ class Taxon:
             return
         _cur = _db.cursor()
         if not self.__saved:
-            _cur.execute(f'insert into {type(self)._table}(tax_name, rank, description, parent_id) values (?, ?, ?, ?);',
+            _cur.execute(f'insert into {type(self)._table}(tax_name, rank, description, parent_id) values (?, ?, ?, ?) returning id;',
                                     (self.name, self.rank, self.description, self._parentId))
+            _id = _cur.fetchone()
+            self.__id = _id[0]
         else:
             _cur.execute(f'update {type(self)._table} set tax_name = ?, rank = ?, description = ?, parent_id = ? where id = ?;',
                                     (self.name, self.rank, self.description, self._parentId, self.__id))

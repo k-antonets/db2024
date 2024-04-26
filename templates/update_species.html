@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %} {{ species.fullName }} {% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form action="{{url_for('update_species', id=species.id)}}" method="post">
+    <label for="sname">Species name: </label>
+    <input type="text" id="sname" name="sname" value="{{species.name}}"><br>
+    <label>Genus name: </label>
+    <br>
+    {% for g in genera %}
+    <input type="radio" id="genus_{{g.id}}" name="genus" value="{{g.id}}">
+    <label for="genus_{{g.id}}">{{g.name}}</label><br>
+    {% endfor %}
+    <label for="description">Description: </label><br>
+    <textarea id="description" name="description" rows="5" cols="30">
+        {{species.description}}
+    </textarea><br>
+    <input type="submit" value="Save">
+</form>
+{% endblock %}

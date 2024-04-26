@@ -1,5 +1,5 @@
 import sqlite3
-from taxon import Taxon
+from .taxon import Taxon
 
 class Species(Taxon):
     def __init__(self, speciesName='', genusName='', description=''):
@@ -14,9 +14,17 @@ class Species(Taxon):
     def speciesName(self):
         return self.name
 
+    @speciesName.setter
+    def speciesName(self, name):
+        self.name = name
+
     @property
     def genusName(self):
         return self.__genus.name
+
+    @genusName.setter
+    def genusName(self, name):
+        self.__genus.name = name
 
     @property
     def genus(self):
@@ -26,6 +34,7 @@ class Species(Taxon):
     @classmethod
     def getById(cls, _db, id: int):
         t = super(Species, cls).getById(_db, id)
+        t.__setGenus(_db)
         return t
 
     def __setGenus(self, _db):
@@ -38,11 +47,9 @@ class Species(Taxon):
     def save(self, _db):
         self.__genus.save(_db)
         self._parentId = self.__genus.id
-        self.save(_db)
+        super().save(_db)
 
     @classmethod
     def getList(cls, _db):
         lst = cls.getListByRank(_db, 'species')
-        for s in lst:
-            s.__setGenus(_db)
         return lst

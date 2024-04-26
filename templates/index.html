@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %} {{ title }} {% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<p>List of voles species:</p>
+<ul>
+    {% for sp in species %}
+    <li><a href="{{ url_for('species', id=sp.id) }}">{{ sp.fullName }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}
